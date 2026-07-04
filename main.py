@@ -2,17 +2,17 @@ import argparse
 import numpy as np
 import pandas as pd
 from prepare import PrepareDataset
-from train_TFPredictor import TrainTFPredictor, TestTFPredictor
+from train_ScaleMamba import TrainScaleMamba, TestScaleMamba
 from train_rnn import TrainLSTM, TestLSTM
 import matplotlib.pyplot as plt
 
 
 
-parser = argparse.ArgumentParser(description='Train & Test TFPredictor for traffic/weather/flow forecasting')
+parser = argparse.ArgumentParser(description='Train & Test ScaleMamba for traffic/weather/flow forecasting')
 # choose dataset
 parser.add_argument('-dataset', type=str, default='pems04', help='which dataset to run [options: pems04,PEMSBY,metr-la]')
 # choose model
-parser.add_argument('-model', type=str, default='TFPredictor', help='which model to train & test [options: TFPredictor.py]')
+parser.add_argument('-model', type=str, default='ScaleMamba', help='which model to train & test [options: ScaleMamba.py]')
 # choose number of node features
 parser.add_argument('-mamba_features', type=int, default=307, help='number of features for the STGmamba model [options: 307,325,207]')
 
@@ -54,8 +54,8 @@ print(f"Train dataloader length: {len(train_dataloader)}")
 print(f"Validation dataloader length: {len(valid_dataloader)}")
 print(f"Test dataloader length: {len(test_dataloader)}")
 
-if args.model == 'TFPredictor':
-    print("\nTraining TFPredictor model...")
-    TFPredictor, TFPredictor_loss = TrainTFPredictor(train_dataloader, valid_dataloader, A, K=3, num_epochs=200, mamba_features=args.mamba_features)
-    print("\nTesting TFPredictor model...")
-    results = TestTFPredictor(TFPredictor, test_dataloader, max_value)
+if args.model == 'ScaleMamba':
+    print("\nTraining ScaleMamba model...")
+    ScaleMamba, ScaleMamba_loss = TrainScaleMamba(train_dataloader, valid_dataloader, A, K=3, num_epochs=200, mamba_features=args.mamba_features)
+    print("\nTesting ScaleMamba model...")
+    results = TestScaleMamba(ScaleMamba, test_dataloader, max_value)

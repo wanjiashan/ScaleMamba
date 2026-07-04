@@ -3,11 +3,11 @@
 
 示例：
     python profile_stats.py --datasets PEMS-BAY METR-LA
-    python profile_stats.py --datasets PEMS08 --variants TFPredictor --max-train-batches 0
+    python profile_stats.py --datasets PEMS08 --variants ScaleMamba --max-train-batches 0
 
 备注：
-    - TFPredictor 使用仓库原始的 KFGN_Mamba 实现。
-    - TFPredictor-Transformer 保持相同输入输出维度、KFGN 图模块、层数和残差骨架，
+    - ScaleMamba 使用仓库原始的 KFGN_Mamba 实现。
+    - ScaleMamba-Transformer 保持相同输入输出维度、KFGN 图模块、层数和残差骨架，
       只把 Mamba mixer 替换为 Transformer mixer，用于更公平的消融对比。
     - 默认用 20 个 batch 外推单个 epoch 的训练耗时；如果希望完整实测一个 epoch，
       请设置 --max-train-batches 0。
@@ -72,7 +72,7 @@ except ImportError:
     einops_stub.einsum = _einsum
     sys.modules["einops"] = einops_stub
 
-from TFPredictor import KFGN, KFGN_Mamba, ModelArgs, RMSNorm
+from ScaleMamba import KFGN, KFGN_Mamba, ModelArgs, RMSNorm
 
 
 # 当前脚本所在目录，用于拼接数据集路径和输出路径。
@@ -135,7 +135,7 @@ class ProfileRow:
 
 
 class TransformerMixer(nn.Module):
-    """Transformer 替换模块：用于替换原始 TFPredictor 中的 MambaBlock。"""
+    """Transformer 替换模块：用于替换原始 ScaleMamba 中的 MambaBlock。"""
 
     def __init__(self, d_model: int, nhead: int, dim_feedforward: int, dropout: float = 0.0) -> None:
         super().__init__()
@@ -196,8 +196,8 @@ class KFGNTransformerResidualBlock(nn.Module):
         return x3 + x1
 
 
-class TFPredictorTransformer(nn.Module):
-    """KFGN + Transformer 版本，用作 TFPredictor 的公平结构对照。"""
+class ScaleMambaTransformer(nn.Module):
+    """KFGN + Transformer 版本，用作 ScaleMamba 的公平结构对照。"""
 
     def __init__(
         self,
@@ -443,7 +443,7 @@ def build_model(
     """根据 variant 构造需要统计的模型。"""
 
     forecast_head = "none"
-    if variant == "TFPredictor":
+    if variant == "ScaleMamba":
         args = ModelArgs(
             K=k,
             # A 在构造阶段保持 CPU，因为原始 KFGN 初始化时会创建 CPU 中间张量；
@@ -456,7 +456,7 @@ def build_model(
         )
         model = KFGN_Mamba(args)
 
-    elif variant == "TFPredictor-Transformer":
+    elif variant == "ScaleMamba-Transformer":
         # Transformer 对照版本同样保留 KFGN、层数和输入输出维度。
         args = ModelArgs(
             K=k,
@@ -466,7 +466,7 @@ def build_model(
             n_layer=layers,
             features=features,
         )
-        model = TFPredictorTransformer(
+        model = ScaleMambaTransformer(
             args,
             nhead=transformer_heads,
             ffn_multiplier=transformer_ffn_multiplier,
@@ -767,9 +767,9 @@ def write_outputs(rows: list[ProfileRow], output_prefix: Path) -> None:
 def parse_args() -> argparse.Namespace:
     """解析命令行参数。"""
 
-    parser = argparse.ArgumentParser(description="统计 TFPredictor 的参数量、FLOPs 和运行耗时。")
+    parser = argparse.ArgumentParser(description="统计 ScaleMamba 的参数量、FLOPs 和运行耗时。")
     parser.add_argument("--datasets", nargs="+", default=["PEMS-BAY", "METR-LA"])
-    parser.add_argument("--variants", nargs="+", default=["TFPredictor", "TFPredictor-Transformer"])
+    parser.add_argument("--variants", nargs="+", default=["ScaleMamba", "ScaleMamba-Transformer"])
     parser.add_argument("--batch-size", type=int, default=48)
     parser.add_argument("--seq-len", type=int, default=5)
     parser.add_argument("--seq-lens", nargs="+", type=int, default=None, help="批量测试多个输入序列长度，例如：--seq-lens 96 198 368。")

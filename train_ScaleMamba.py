@@ -4,11 +4,11 @@ import math
 import torch
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
-from TFPredictor import *
+from ScaleMamba import *
 from torch.autograd import Variable
 
 
-def TrainTFPredictor(train_dataloader, valid_dataloader, A, K=3, num_epochs=100, mamba_features=307):
+def TrainScaleMamba(train_dataloader, valid_dataloader, A, K=3, num_epochs=100, mamba_features=307):
     inputs, labels = next(iter(train_dataloader))
     [batch_size, step_size, fea_size] = inputs.size()
     input_dim = fea_size
@@ -132,7 +132,7 @@ def TrainTFPredictor(train_dataloader, valid_dataloader, A, K=3, num_epochs=100,
     kfgn_mamba.load_state_dict(torch.load('best_model.pth'))
 
     return kfgn_mamba, [losses_train, losses_interval_train, losses_valid, losses_interval_valid]
-def TestTFPredictor(kfgn_mamba, test_dataloader, max_speed):
+def TestScaleMamba(kfgn_mamba, test_dataloader, max_speed):
     use_gpu = torch.cuda.is_available()
     loss_MSE = torch.nn.MSELoss()
     losses_mse = []
