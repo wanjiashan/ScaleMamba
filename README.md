@@ -1,4 +1,4 @@
-## ScaleMamba: Dynamic Multi-Scale Graph State Space Learning for Traffic Forecasting in Urban IoT Sensing Networks
+## ScaleMamba: Multi-Scale Graph State Space Learning for Traffic Forecasting in Urban IoT Networks
 
 <div align="center">
   <img src="imgs/1.png" alt="Example Image" width="500" />
